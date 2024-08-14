@@ -1,19 +1,19 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import ProductDetailPage from './pages/ProductDetailPage';
+import ProductsPage from './pages/HomePage';
 import AddProductPage from './pages/AddProductPage';
+import EditProductPage from './pages/EditProductPage';
 
 function App() {
-  return (
-      <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/product/:id" element={<ProductDetailPage />} />
-          <Route path="/add-product" element={<AddProductPage />} />
-        </Routes>
-      </Router>
-  );
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<ProductsPage />} />
+                <Route path="/add-product" element={<AddProductPage />} />
+                <Route path="/edit-product/:productId" element={<EditProductPage />} />
+            </Routes>
+        </Router>
+    );
 }
 
 export default App;
