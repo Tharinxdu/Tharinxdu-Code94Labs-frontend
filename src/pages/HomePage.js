@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Grid, Typography, TextField, Button, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Avatar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { Search, Add, Edit, Delete, Star, StarBorder } from '@mui/icons-material';
+import { Search, Add, Edit, Delete, Star, StarBorder, ExitToApp } from '@mui/icons-material'; // Import ExitToApp icon for logout
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProducts, deleteProduct, searchProducts } from '../features/products/productsSlice';  // Add searchProducts action
+import { fetchProducts, deleteProduct } from '../features/products/productsSlice';
 import { toggleFavorite } from '../features/favorites/favoritesSlice';
+import { logout } from '../features/auth/authSlice'; // Import the logout action
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
 
 const ProductsPage = () => {
@@ -13,6 +14,7 @@ const ProductsPage = () => {
 
     const { products, loading, error } = useSelector((state) => state.products);
     const favorites = useSelector((state) => state.favorites.list || []);
+    const user = useSelector((state) => state.auth.user); // Get user info from auth state
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [productIdToDelete, setProductIdToDelete] = useState(null);
     const [showFavorites, setShowFavorites] = useState(false);
@@ -54,19 +56,21 @@ const ProductsPage = () => {
     };
 
     const handleSearch = () => {
-        // Validation: Ensure search term is not empty
         if (!searchTerm.trim()) {
             setSearchError("Search term cannot be empty.");
             return;
         }
         setSearchError("");  // Clear any previous errors
 
-        // Dispatch search action to query the search endpoint
-        dispatch(searchProducts(searchTerm));
+        navigate(`/search/${searchTerm.trim()}`);  // Navigate to the search results page with the search term
     };
 
-    const filteredProducts = products
-        .filter((product) => (showFavorites ? favorites.includes(product._id) : true));
+    const handleLogout = () => {
+        dispatch(logout()); // Dispatch the logout action
+        navigate('/login'); // Redirect to the login page
+    };
+
+    const filteredProducts = products.filter((product) => (showFavorites ? favorites.includes(product._id) : true));
 
     return (
         <Container sx={{ mt: 4 }}>
@@ -82,10 +86,17 @@ const ProductsPage = () => {
                 </Grid>
                 <Grid item>
                     <Grid container alignItems="center">
-                        <Typography variant="subtitle1" color="textPrimary" sx={{ mr: 2 }}>
-                            ADMIN
-                        </Typography>
-                        <Avatar src="path/to/admin-avatar.jpg" alt="Admin" sx={{ bgcolor: '#001EB9', width: 40, height: 40 }} />
+                        {user && (
+                            <>
+                                <Typography variant="subtitle1" color="textPrimary" sx={{ mr: 2 }}>
+                                    {user.username} {/* Display the logged-in user's username */}
+                                </Typography>
+                                <IconButton color="primary" onClick={handleLogout}>
+                                    <ExitToApp /> {/* Logout icon */}
+                                </IconButton>
+                            </>
+                        )}
+                        <Avatar src="" alt="Admin" sx={{ bgcolor: '#001EB9', width: 40, height: 40 }} />
                     </Grid>
                 </Grid>
             </Grid>
@@ -150,7 +161,7 @@ const ProductsPage = () => {
                         <TableRow key={product._id}>
                             <TableCell>{product.sku}</TableCell>
                             <TableCell>
-                                <Avatar variant="square" src={product.image} alt={product.name} sx={{ width: 56, height: 56 }} />
+                                <Avatar variant="square" src={`http://localhost:5000${product.mainImage}`} alt={product.name} sx={{ width: 56, height: 56 }} />
                             </TableCell>
                             <TableCell>{product.name}</TableCell>
                             <TableCell>{product.price}</TableCell>

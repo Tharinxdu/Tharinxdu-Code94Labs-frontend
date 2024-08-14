@@ -15,38 +15,44 @@ const EditProductPage = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (!product) {
-            // Fetch the product if it's not already in the Redux store
-            dispatch(fetchProductById(productId))
-                .unwrap()
-                .then((data) => {
+        const loadProduct = async () => {
+            setLoading(true); // Ensure loading state is set
+            if (!product) {
+                try {
+                    const data = await dispatch(fetchProductById(productId)).unwrap();
+                    console.log("Fetched product:", data); // Log fetched data
                     setInitialData({
                         sku: data.sku,
                         quantity: data.quantity,
+                        price: data.price,
                         name: data.name,
                         description: data.description,
                         images: data.images,
                         mainImage: data.mainImage,
                     });
-                    setLoading(false);
-                })
-                .catch((err) => {
+                } catch (err) {
+                    console.error("Error fetching product:", err); // Log error
                     setError(err.message);
+                } finally {
                     setLoading(false);
+                }
+            } else {
+                console.log("Product found in store:", product); // Log product from store
+                setInitialData({
+                    sku: product.sku,
+                    quantity: product.quantity,
+                    price: product.price,
+                    name: product.name,
+                    description: product.description,
+                    images: product.images,
+                    mainImage: product.mainImage,
                 });
-        } else {
-            // If product is already in the store, use it
-            setInitialData({
-                sku: product.sku,
-                quantity: product.quantity,
-                name: product.name,
-                description: product.description,
-                images: product.images,
-                mainImage: product.mainImage,
-            });
-            setLoading(false);
-        }
-    }, [dispatch, productId, product]);
+                setLoading(false);
+            }
+        };
+
+        loadProduct();
+    }, [dispatch, productId, product]); // Dependency array ensures this runs when product or productId changes
 
     const handleSubmit = (formData) => {
         dispatch(updateProduct({ id: productId, product: formData }))
@@ -56,7 +62,7 @@ const EditProductPage = () => {
             })
             .catch((err) => {
                 // Handle errors
-                console.error(err);
+                console.error("Error updating product:", err);
             });
     };
 
